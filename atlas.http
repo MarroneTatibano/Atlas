@@ -1,0 +1,12 @@
+### Listar produtos
+GET http://localhost:8080/produtos
+
+### Cadastrar produto
+POST http://localhost:8080/produtos
+Content-Type: application/json
+
+{
+  "nome": "Dipirona 500mg c/10 EMS",
+  "preco": 3.49,
+  "estoque": 20
+}
