@@ -21,6 +21,12 @@ public class ProdutoService {
         return produtoRepository.findAll();
     }
 
+    public Produto buscarProduto(Long id) {
+        return produtoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND, "Produto não encontrado"));
+    }
+
     public Produto cadastrarProduto(Produto produto) {
         return produtoRepository.save(produto);
     }

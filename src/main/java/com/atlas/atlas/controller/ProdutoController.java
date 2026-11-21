@@ -29,6 +29,10 @@ public class ProdutoController {
     public Produto cadastrarProduto(@Valid @RequestBody Produto produto) {
         return produtoService.cadastrarProduto(produto);
     }
+    @GetMapping("/produtos/{id}")
+    public Produto buscarProduto(@PathVariable Long id) {
+        return produtoService.buscarProduto(id);
+    }
     @PutMapping("/produtos/{id}")
     public Produto atualizarProduto(@PathVariable Long id, @Valid @RequestBody Produto produto) {
         return produtoService.atualizarProduto(id, produto);
