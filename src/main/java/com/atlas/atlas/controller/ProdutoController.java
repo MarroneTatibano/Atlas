@@ -2,7 +2,6 @@ package com.atlas.atlas.controller;
 
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.GetMapping;
-import com.atlas.atlas.model.Produto;
 import com.atlas.atlas.service.ProdutoService;
 import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +12,8 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import com.atlas.atlas.dto.ProdutoRequest;
+import com.atlas.atlas.dto.ProdutoResponse;
 
 @RestController
 public class ProdutoController {
@@ -24,22 +25,26 @@ public class ProdutoController {
     }
 
     @GetMapping("/produtos")
-    public List<Produto> listarProdutos() {
+    public List<ProdutoResponse> listarProdutos() {
         return produtoService.listarProdutos();
     }
+
     @PostMapping("/produtos")
     @ResponseStatus(HttpStatus.CREATED)
-    public Produto cadastrarProduto(@Valid @RequestBody Produto produto) {
-        return produtoService.cadastrarProduto(produto);
+    public ProdutoResponse cadastrarProduto(@Valid @RequestBody ProdutoRequest request) {
+        return produtoService.cadastrarProduto(request);
     }
+
     @GetMapping("/produtos/{id}")
-    public Produto buscarProduto(@PathVariable Long id) {
+    public ProdutoResponse buscarProduto(@PathVariable Long id) {
         return produtoService.buscarProduto(id);
     }
+
     @PutMapping("/produtos/{id}")
-    public Produto atualizarProduto(@PathVariable Long id, @Valid @RequestBody Produto produto) {
-        return produtoService.atualizarProduto(id, produto);
+    public ProdutoResponse atualizarProduto(@PathVariable Long id, @Valid @RequestBody ProdutoRequest request) {
+        return produtoService.atualizarProduto(id, request);
     }
+
     @DeleteMapping("/produtos/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluirProduto(@PathVariable Long id) {
