@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestController
 public class ProdutoController {
@@ -26,6 +28,7 @@ public class ProdutoController {
         return produtoService.listarProdutos();
     }
     @PostMapping("/produtos")
+    @ResponseStatus(HttpStatus.CREATED)
     public Produto cadastrarProduto(@Valid @RequestBody Produto produto) {
         return produtoService.cadastrarProduto(produto);
     }
@@ -38,6 +41,7 @@ public class ProdutoController {
         return produtoService.atualizarProduto(id, produto);
     }
     @DeleteMapping("/produtos/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluirProduto(@PathVariable Long id) {
         produtoService.excluirProduto(id);
     }
