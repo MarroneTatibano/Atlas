@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
 import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
+import com.atlas.atlas.dto.MovimentacaoResponse;
 
 @RestController
 public class ProdutoController {
@@ -61,5 +62,9 @@ public class ProdutoController {
     public ProdutoResponse registrarSaida(@PathVariable Long id,
                                           @Valid @RequestBody MovimentacaoEstoqueRequest request) {
         return produtoService.registrarSaida(id, request);
+    }
+    @GetMapping("/produtos/{id}/movimentacoes")
+    public List<MovimentacaoResponse> listarMovimentacoes(@PathVariable Long id) {
+        return produtoService.listarMovimentacoes(id);
     }
 }

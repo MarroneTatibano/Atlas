@@ -1,13 +1,18 @@
 package com.atlas.atlas.service;
 
+import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
+import com.atlas.atlas.dto.MovimentacaoResponse;
 import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
+import com.atlas.atlas.model.Movimentacao;
 import com.atlas.atlas.model.Produto;
+import com.atlas.atlas.model.TipoMovimentacao;
+import com.atlas.atlas.repository.MovimentacaoRepository;
 import com.atlas.atlas.repository.ProdutoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 
 import java.util.List;
 
@@ -15,9 +20,12 @@ import java.util.List;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
+    private final MovimentacaoRepository movimentacaoRepository;               // NOVO
 
-    public ProdutoService(ProdutoRepository produtoRepository) {
+    public ProdutoService(ProdutoRepository produtoRepository,
+                          MovimentacaoRepository movimentacaoRepository) {     // NOVO parâmetro
         this.produtoRepository = produtoRepository;
+        this.movimentacaoRepository = movimentacaoRepository;                  // NOVO
     }
 
     public List<ProdutoResponse> listarProdutos() {
@@ -42,12 +50,19 @@ public class ProdutoService {
         return ProdutoResponse.from(produtoRepository.save(produto));
     }
 
+    @Transactional                                                             // NOVO
     public ProdutoResponse registrarEntrada(Long id, MovimentacaoEstoqueRequest request) {
         Produto produto = buscarEntidade(id);
         produto.setEstoque(produto.getEstoque() + request.quantidade());
-        return ProdutoResponse.from(produtoRepository.save(produto));
+        Produto salvo = produtoRepository.save(produto);
+
+        movimentacaoRepository.save(                                           // NOVO: grava no histórico
+                new Movimentacao(salvo, TipoMovimentacao.ENTRADA, request.quantidade()));
+
+        return ProdutoResponse.from(salvo);
     }
 
+    @Transactional                                                             // NOVO
     public ProdutoResponse registrarSaida(Long id, MovimentacaoEstoqueRequest request) {
         Produto produto = buscarEntidade(id);
 
@@ -58,14 +73,28 @@ public class ProdutoService {
         }
 
         produto.setEstoque(produto.getEstoque() - request.quantidade());
-        return ProdutoResponse.from(produtoRepository.save(produto));
+        Produto salvo = produtoRepository.save(produto);
+
+        movimentacaoRepository.save(                                           // NOVO: grava no histórico
+                new Movimentacao(salvo, TipoMovimentacao.SAIDA, request.quantidade()));
+
+        return ProdutoResponse.from(salvo);
     }
 
+    public List<MovimentacaoResponse> listarMovimentacoes(Long id) {           // NOVO método
+        buscarEntidade(id);
+        return movimentacaoRepository.findByProdutoIdOrderByDataHoraDesc(id).stream()
+                .map(MovimentacaoResponse::from)
+                .toList();
+    }
+
+    @Transactional                                                             // NOVO
     public void excluirProduto(Long id) {
         if (!produtoRepository.existsById(id)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Produto não encontrado");
         }
+        movimentacaoRepository.deleteByProdutoId(id);                          // NOVO: apaga o histórico antes
         produtoRepository.deleteById(id);
     }
 

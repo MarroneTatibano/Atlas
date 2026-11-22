@@ -12,7 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-
+import com.atlas.atlas.repository.MovimentacaoRepository;
 import java.math.BigDecimal;
 import java.util.Optional;
 
@@ -28,6 +28,9 @@ class ProdutoServiceTest {
 
     @Mock
     private ProdutoRepository produtoRepository;
+
+    @Mock
+    private MovimentacaoRepository movimentacaoRepository;
 
     @InjectMocks
     private ProdutoService produtoService;
