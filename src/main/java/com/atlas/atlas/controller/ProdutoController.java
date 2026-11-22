@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
+import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 
 @RestController
 public class ProdutoController {
@@ -49,5 +50,16 @@ public class ProdutoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void excluirProduto(@PathVariable Long id) {
         produtoService.excluirProduto(id);
+    }
+    @PostMapping("/produtos/{id}/entrada")
+    public ProdutoResponse registrarEntrada(@PathVariable Long id,
+                                            @Valid @RequestBody MovimentacaoEstoqueRequest request) {
+        return produtoService.registrarEntrada(id, request);
+    }
+
+    @PostMapping("/produtos/{id}/saida")
+    public ProdutoResponse registrarSaida(@PathVariable Long id,
+                                          @Valid @RequestBody MovimentacaoEstoqueRequest request) {
+        return produtoService.registrarSaida(id, request);
     }
 }

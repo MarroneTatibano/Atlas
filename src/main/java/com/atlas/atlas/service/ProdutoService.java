@@ -7,6 +7,7 @@ import com.atlas.atlas.repository.ProdutoRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 
 import java.util.List;
 
@@ -38,6 +39,25 @@ public class ProdutoService {
     public ProdutoResponse atualizarProduto(Long id, ProdutoRequest request) {
         Produto produto = buscarEntidade(id);
         copiarDados(request, produto);
+        return ProdutoResponse.from(produtoRepository.save(produto));
+    }
+
+    public ProdutoResponse registrarEntrada(Long id, MovimentacaoEstoqueRequest request) {
+        Produto produto = buscarEntidade(id);
+        produto.setEstoque(produto.getEstoque() + request.quantidade());
+        return ProdutoResponse.from(produtoRepository.save(produto));
+    }
+
+    public ProdutoResponse registrarSaida(Long id, MovimentacaoEstoqueRequest request) {
+        Produto produto = buscarEntidade(id);
+
+        if (produto.getEstoque() < request.quantidade()) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Estoque insuficiente. Disponível: " + produto.getEstoque());
+        }
+
+        produto.setEstoque(produto.getEstoque() - request.quantidade());
         return ProdutoResponse.from(produtoRepository.save(produto));
     }
 
