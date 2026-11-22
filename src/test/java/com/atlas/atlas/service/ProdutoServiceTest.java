@@ -2,11 +2,14 @@ package com.atlas.atlas.service;
 
 import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
+import com.atlas.atlas.model.Movimentacao;
 import com.atlas.atlas.model.Produto;
+import com.atlas.atlas.model.TipoMovimentacao;
 import com.atlas.atlas.repository.ProdutoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -17,6 +20,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -50,6 +54,14 @@ class ProdutoServiceTest {
         ProdutoResponse resposta = produtoService.registrarEntrada(1L, new MovimentacaoEstoqueRequest(10));
 
         assertEquals(30, resposta.estoque());
+
+        ArgumentCaptor<Movimentacao> captor = ArgumentCaptor.forClass(Movimentacao.class);
+        verify(movimentacaoRepository).save(captor.capture());
+        Movimentacao movimentacao = captor.getValue();
+        assertEquals(TipoMovimentacao.ENTRADA, movimentacao.getTipo());
+        assertEquals(10, movimentacao.getQuantidade());
+        assertEquals(produto, movimentacao.getProduto());
+        assertNotNull(movimentacao.getDataHora());
     }
 
     @Test
@@ -60,6 +72,14 @@ class ProdutoServiceTest {
         ProdutoResponse resposta = produtoService.registrarSaida(1L, new MovimentacaoEstoqueRequest(5));
 
         assertEquals(15, resposta.estoque());
+
+        ArgumentCaptor<Movimentacao> captor = ArgumentCaptor.forClass(Movimentacao.class);
+        verify(movimentacaoRepository).save(captor.capture());
+        Movimentacao movimentacao = captor.getValue();
+        assertEquals(TipoMovimentacao.SAIDA, movimentacao.getTipo());
+        assertEquals(5, movimentacao.getQuantidade());
+        assertEquals(produto, movimentacao.getProduto());
+        assertNotNull(movimentacao.getDataHora());
     }
 
     @Test
@@ -71,6 +91,18 @@ class ProdutoServiceTest {
 
         assertEquals(HttpStatus.CONFLICT, erro.getStatusCode());
         verify(produtoRepository, never()).save(any());
+        verify(movimentacaoRepository, never()).save(any());
+    }
+
+    @Test
+    void listarMovimentacoesDeProdutoInexistenteDeveLancarNaoEncontrado() {
+        when(produtoRepository.findById(999L)).thenReturn(Optional.empty());
+
+        ResponseStatusException erro = assertThrows(ResponseStatusException.class,
+                () -> produtoService.listarMovimentacoes(999L));
+
+        assertEquals(HttpStatus.NOT_FOUND, erro.getStatusCode());
+        verify(movimentacaoRepository, never()).findByProdutoIdOrderByDataHoraDesc(any());
     }
 
     @Test
