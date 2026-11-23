@@ -5,12 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "produtos")
-
 public class Produto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -21,17 +23,21 @@ public class Produto {
 
     private Integer estoque;
 
+    @ManyToOne                                   // NOVO
+    @JoinColumn(name = "categoria_id")           // NOVO
+    private Categoria categoria;                 // NOVO
+
     public Produto() {
     }
 
-    public Produto(Long id, String nome, BigDecimal preco, Integer estoque){
+    public Produto(Long id, String nome, BigDecimal preco, Integer estoque) {
         this.id = id;
         this.nome = nome;
         this.preco = preco;
         this.estoque = estoque;
     }
 
-    public Long getId(){
+    public Long getId() {
         return id;
     }
 
@@ -47,15 +53,23 @@ public class Produto {
         return estoque;
     }
 
-    public void setNome(String nome){
-        this.nome=nome;
+    public Categoria getCategoria() {            // NOVO
+        return categoria;
     }
 
-    public void setPreco(BigDecimal preco){
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public void setPreco(BigDecimal preco) {
         this.preco = preco;
     }
 
-    public void setEstoque(Integer estoque){
+    public void setEstoque(Integer estoque) {
         this.estoque = estoque;
+    }
+
+    public void setCategoria(Categoria categoria) {   // NOVO
+        this.categoria = categoria;
     }
 }

@@ -18,6 +18,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.atlas.atlas.repository.MovimentacaoRepository;
 import java.math.BigDecimal;
 import java.util.Optional;
+import com.atlas.atlas.repository.CategoriaRepository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -35,6 +36,9 @@ class ProdutoServiceTest {
 
     @Mock
     private MovimentacaoRepository movimentacaoRepository;
+
+    @Mock
+    private CategoriaRepository categoriaRepository;
 
     @InjectMocks
     private ProdutoService produtoService;

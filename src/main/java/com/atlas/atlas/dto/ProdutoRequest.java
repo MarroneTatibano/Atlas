@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record ProdutoRequest(
         @NotBlank String nome,
         @NotNull @Positive BigDecimal preco,
-        @NotNull @PositiveOrZero Integer estoque
+        @NotNull @PositiveOrZero Integer estoque,
+        Long categoriaId                              // NOVO (opcional)
 ) {
 }

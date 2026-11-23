@@ -4,9 +4,11 @@ import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 import com.atlas.atlas.dto.MovimentacaoResponse;
 import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
+import com.atlas.atlas.model.Categoria;
 import com.atlas.atlas.model.Movimentacao;
 import com.atlas.atlas.model.Produto;
 import com.atlas.atlas.model.TipoMovimentacao;
+import com.atlas.atlas.repository.CategoriaRepository;
 import com.atlas.atlas.repository.MovimentacaoRepository;
 import com.atlas.atlas.repository.ProdutoRepository;
 import org.springframework.http.HttpStatus;
@@ -20,16 +22,23 @@ import java.util.List;
 public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
-    private final MovimentacaoRepository movimentacaoRepository;               // NOVO
+    private final MovimentacaoRepository movimentacaoRepository;
+    private final CategoriaRepository categoriaRepository;                     // NOVO
 
     public ProdutoService(ProdutoRepository produtoRepository,
-                          MovimentacaoRepository movimentacaoRepository) {     // NOVO parâmetro
+                          MovimentacaoRepository movimentacaoRepository,
+                          CategoriaRepository categoriaRepository) {           // NOVO parâmetro
         this.produtoRepository = produtoRepository;
-        this.movimentacaoRepository = movimentacaoRepository;                  // NOVO
+        this.movimentacaoRepository = movimentacaoRepository;
+        this.categoriaRepository = categoriaRepository;                        // NOVO
     }
 
-    public List<ProdutoResponse> listarProdutos() {
-        return produtoRepository.findAll().stream()
+    public List<ProdutoResponse> listarProdutos(Long categoriaId) {            // NOVO parâmetro
+        List<Produto> produtos = (categoriaId == null)
+                ? produtoRepository.findAll()
+                : produtoRepository.findByCategoriaId(categoriaId);
+
+        return produtos.stream()
                 .map(ProdutoResponse::from)
                 .toList();
     }
@@ -50,19 +59,19 @@ public class ProdutoService {
         return ProdutoResponse.from(produtoRepository.save(produto));
     }
 
-    @Transactional                                                             // NOVO
+    @Transactional
     public ProdutoResponse registrarEntrada(Long id, MovimentacaoEstoqueRequest request) {
         Produto produto = buscarEntidade(id);
         produto.setEstoque(produto.getEstoque() + request.quantidade());
         Produto salvo = produtoRepository.save(produto);
 
-        movimentacaoRepository.save(                                           // NOVO: grava no histórico
+        movimentacaoRepository.save(
                 new Movimentacao(salvo, TipoMovimentacao.ENTRADA, request.quantidade()));
 
         return ProdutoResponse.from(salvo);
     }
 
-    @Transactional                                                             // NOVO
+    @Transactional
     public ProdutoResponse registrarSaida(Long id, MovimentacaoEstoqueRequest request) {
         Produto produto = buscarEntidade(id);
 
@@ -75,26 +84,26 @@ public class ProdutoService {
         produto.setEstoque(produto.getEstoque() - request.quantidade());
         Produto salvo = produtoRepository.save(produto);
 
-        movimentacaoRepository.save(                                           // NOVO: grava no histórico
+        movimentacaoRepository.save(
                 new Movimentacao(salvo, TipoMovimentacao.SAIDA, request.quantidade()));
 
         return ProdutoResponse.from(salvo);
     }
 
-    public List<MovimentacaoResponse> listarMovimentacoes(Long id) {           // NOVO método
+    public List<MovimentacaoResponse> listarMovimentacoes(Long id) {
         buscarEntidade(id);
         return movimentacaoRepository.findByProdutoIdOrderByDataHoraDesc(id).stream()
                 .map(MovimentacaoResponse::from)
                 .toList();
     }
 
-    @Transactional                                                             // NOVO
+    @Transactional
     public void excluirProduto(Long id) {
         if (!produtoRepository.existsById(id)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND, "Produto não encontrado");
         }
-        movimentacaoRepository.deleteByProdutoId(id);                          // NOVO: apaga o histórico antes
+        movimentacaoRepository.deleteByProdutoId(id);
         produtoRepository.deleteById(id);
     }
 
@@ -108,5 +117,15 @@ public class ProdutoService {
         produto.setNome(request.nome());
         produto.setPreco(request.preco());
         produto.setEstoque(request.estoque());
+        produto.setCategoria(buscarCategoria(request.categoriaId()));          // NOVO
+    }
+
+    private Categoria buscarCategoria(Long categoriaId) {                      // NOVO método
+        if (categoriaId == null) {
+            return null;
+        }
+        return categoriaRepository.findById(categoriaId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, "Categoria informada não existe"));
     }
 }

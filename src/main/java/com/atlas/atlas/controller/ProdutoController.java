@@ -16,6 +16,7 @@ import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
 import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 import com.atlas.atlas.dto.MovimentacaoResponse;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 public class ProdutoController {
@@ -27,8 +28,8 @@ public class ProdutoController {
     }
 
     @GetMapping("/produtos")
-    public List<ProdutoResponse> listarProdutos() {
-        return produtoService.listarProdutos();
+    public List<ProdutoResponse> listarProdutos(@RequestParam(required = false) Long categoriaId) {
+        return produtoService.listarProdutos(categoriaId);
     }
 
     @PostMapping("/produtos")
