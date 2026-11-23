@@ -23,9 +23,9 @@ public class Produto {
 
     private Integer estoque;
 
-    @ManyToOne                                   // NOVO
-    @JoinColumn(name = "categoria_id")           // NOVO
-    private Categoria categoria;                 // NOVO
+    @ManyToOne
+    @JoinColumn(name = "categoria_id")
+    private Categoria categoria;
 
     public Produto() {
     }
@@ -53,7 +53,7 @@ public class Produto {
         return estoque;
     }
 
-    public Categoria getCategoria() {            // NOVO
+    public Categoria getCategoria() {
         return categoria;
     }
 
@@ -69,7 +69,7 @@ public class Produto {
         this.estoque = estoque;
     }
 
-    public void setCategoria(Categoria categoria) {   // NOVO
+    public void setCategoria(Categoria categoria) {
         this.categoria = categoria;
     }
 }

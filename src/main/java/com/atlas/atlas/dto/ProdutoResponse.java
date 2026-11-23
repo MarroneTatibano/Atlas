@@ -9,7 +9,7 @@ public record ProdutoResponse(
         String nome,
         BigDecimal preco,
         Integer estoque,
-        CategoriaResponse categoria                   // NOVO
+        CategoriaResponse categoria
 ) {
     public static ProdutoResponse from(Produto produto) {
         return new ProdutoResponse(
@@ -17,7 +17,7 @@ public record ProdutoResponse(
                 produto.getNome(),
                 produto.getPreco(),
                 produto.getEstoque(),
-                produto.getCategoria() != null                          // NOVO
+                produto.getCategoria() != null
                         ? CategoriaResponse.from(produto.getCategoria())
                         : null
         );

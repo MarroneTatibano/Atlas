@@ -11,6 +11,6 @@ public record ProdutoRequest(
         @NotBlank String nome,
         @NotNull @Positive BigDecimal preco,
         @NotNull @PositiveOrZero Integer estoque,
-        Long categoriaId                              // NOVO (opcional)
+        Long categoriaId
 ) {
 }

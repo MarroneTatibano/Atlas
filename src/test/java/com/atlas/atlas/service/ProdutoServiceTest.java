@@ -19,6 +19,8 @@ import com.atlas.atlas.repository.MovimentacaoRepository;
 import java.math.BigDecimal;
 import java.util.Optional;
 import com.atlas.atlas.repository.CategoriaRepository;
+import com.atlas.atlas.dto.ProdutoAtualizacaoRequest;
+import com.atlas.atlas.dto.ProdutoRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -117,5 +119,40 @@ class ProdutoServiceTest {
                 () -> produtoService.buscarProduto(999L));
 
         assertEquals(HttpStatus.NOT_FOUND, erro.getStatusCode());
+    }
+    @Test
+    void atualizarProdutoNaoDeveAlterarEstoque() {
+        when(produtoRepository.findById(1L)).thenReturn(Optional.of(produto));
+        when(produtoRepository.save(any(Produto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        ProdutoResponse resposta = produtoService.atualizarProduto(1L,
+                new ProdutoAtualizacaoRequest("Dipirona 1g", new BigDecimal("5.00"), null));
+
+        assertEquals("Dipirona 1g", resposta.nome());
+        assertEquals(20, resposta.estoque());
+        verify(movimentacaoRepository, never()).save(any());
+    }
+
+    @Test
+    void cadastrarProdutoComEstoqueInicialDeveRegistrarEntrada() {
+        when(produtoRepository.save(any(Produto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        produtoService.cadastrarProduto(
+                new ProdutoRequest("Sabonete", new BigDecimal("2.50"), 50, null));
+
+        ArgumentCaptor<Movimentacao> captor = ArgumentCaptor.forClass(Movimentacao.class);
+        verify(movimentacaoRepository).save(captor.capture());
+        assertEquals(TipoMovimentacao.ENTRADA, captor.getValue().getTipo());
+        assertEquals(50, captor.getValue().getQuantidade());
+    }
+
+    @Test
+    void cadastrarProdutoSemEstoqueNaoDeveRegistrarMovimentacao() {
+        when(produtoRepository.save(any(Produto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        produtoService.cadastrarProduto(
+                new ProdutoRequest("Sabonete", new BigDecimal("2.50"), 0, null));
+
+        verify(movimentacaoRepository, never()).save(any());
     }
 }

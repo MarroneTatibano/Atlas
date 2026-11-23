@@ -2,6 +2,7 @@ package com.atlas.atlas.service;
 
 import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 import com.atlas.atlas.dto.MovimentacaoResponse;
+import com.atlas.atlas.dto.ProdutoAtualizacaoRequest;
 import com.atlas.atlas.dto.ProdutoRequest;
 import com.atlas.atlas.dto.ProdutoResponse;
 import com.atlas.atlas.model.Categoria;
@@ -23,17 +24,17 @@ public class ProdutoService {
 
     private final ProdutoRepository produtoRepository;
     private final MovimentacaoRepository movimentacaoRepository;
-    private final CategoriaRepository categoriaRepository;                     // NOVO
+    private final CategoriaRepository categoriaRepository;
 
     public ProdutoService(ProdutoRepository produtoRepository,
                           MovimentacaoRepository movimentacaoRepository,
-                          CategoriaRepository categoriaRepository) {           // NOVO parâmetro
+                          CategoriaRepository categoriaRepository) {
         this.produtoRepository = produtoRepository;
         this.movimentacaoRepository = movimentacaoRepository;
-        this.categoriaRepository = categoriaRepository;                        // NOVO
+        this.categoriaRepository = categoriaRepository;
     }
 
-    public List<ProdutoResponse> listarProdutos(Long categoriaId) {            // NOVO parâmetro
+    public List<ProdutoResponse> listarProdutos(Long categoriaId) {
         List<Produto> produtos = (categoriaId == null)
                 ? produtoRepository.findAll()
                 : produtoRepository.findByCategoriaId(categoriaId);
@@ -47,15 +48,28 @@ public class ProdutoService {
         return ProdutoResponse.from(buscarEntidade(id));
     }
 
+    @Transactional
     public ProdutoResponse cadastrarProduto(ProdutoRequest request) {
         Produto produto = new Produto();
-        copiarDados(request, produto);
-        return ProdutoResponse.from(produtoRepository.save(produto));
+        produto.setNome(request.nome());
+        produto.setPreco(request.preco());
+        produto.setEstoque(request.estoque());
+        produto.setCategoria(buscarCategoria(request.categoriaId()));
+        Produto salvo = produtoRepository.save(produto);
+
+        if (request.estoque() > 0) {
+            movimentacaoRepository.save(
+                    new Movimentacao(salvo, TipoMovimentacao.ENTRADA, request.estoque()));
+        }
+
+        return ProdutoResponse.from(salvo);
     }
 
-    public ProdutoResponse atualizarProduto(Long id, ProdutoRequest request) {
+    public ProdutoResponse atualizarProduto(Long id, ProdutoAtualizacaoRequest request) {
         Produto produto = buscarEntidade(id);
-        copiarDados(request, produto);
+        produto.setNome(request.nome());
+        produto.setPreco(request.preco());
+        produto.setCategoria(buscarCategoria(request.categoriaId()));
         return ProdutoResponse.from(produtoRepository.save(produto));
     }
 
@@ -113,14 +127,7 @@ public class ProdutoService {
                         HttpStatus.NOT_FOUND, "Produto não encontrado"));
     }
 
-    private void copiarDados(ProdutoRequest request, Produto produto) {
-        produto.setNome(request.nome());
-        produto.setPreco(request.preco());
-        produto.setEstoque(request.estoque());
-        produto.setCategoria(buscarCategoria(request.categoriaId()));          // NOVO
-    }
-
-    private Categoria buscarCategoria(Long categoriaId) {                      // NOVO método
+    private Categoria buscarCategoria(Long categoriaId) {
         if (categoriaId == null) {
             return null;
         }

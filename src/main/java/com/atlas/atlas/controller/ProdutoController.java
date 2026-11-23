@@ -17,6 +17,7 @@ import com.atlas.atlas.dto.ProdutoResponse;
 import com.atlas.atlas.dto.MovimentacaoEstoqueRequest;
 import com.atlas.atlas.dto.MovimentacaoResponse;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.atlas.atlas.dto.ProdutoAtualizacaoRequest;
 
 @RestController
 public class ProdutoController {
@@ -44,7 +45,8 @@ public class ProdutoController {
     }
 
     @PutMapping("/produtos/{id}")
-    public ProdutoResponse atualizarProduto(@PathVariable Long id, @Valid @RequestBody ProdutoRequest request) {
+    public ProdutoResponse atualizarProduto(@PathVariable Long id,
+                                            @Valid @RequestBody ProdutoAtualizacaoRequest request) {
         return produtoService.atualizarProduto(id, request);
     }
 
